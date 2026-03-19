@@ -14,9 +14,6 @@ def random_password(length=12):
     password = ''.join(random.choice(characters) for i in range(length))
     return password
 
-login_email = random_email()
-login_pass = random_password()
-
 def random_company_name():
     import random
     import string
