@@ -1,6 +1,8 @@
 __pycache__/
 *.pyc
 .venv/
+.idea/
+.pytest_cache/
 # Ignore the .env file which may contain sensitive information
 .env
 # Ignore the .vscode directory which may contain user-specific settings
