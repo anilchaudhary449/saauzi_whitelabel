@@ -13,3 +13,17 @@ def random_password(length=12):
     characters = string.ascii_letters + string.digits + string.punctuation
     password = ''.join(random.choice(characters) for i in range(length))
     return password
+
+def random_company_name():
+    import random
+    import string
+    adjectives = ["Tech", "Global", "Innovative", "Dynamic", "Creative"]
+    nouns = ["Solutions", "Systems", "Enterprises", "Technologies", "Services"]
+    company_name = ''.join(random.choice(string.ascii_uppercase) for i in range(5))
+    return f"{company_name} {random.choice(adjectives)} {random.choice(nouns)}"
+
+def random_company_owner():
+    import random
+    first_names = ["John", "Jane", "Alex", "Emily", "Michael"]
+    last_names = ["Smith", "Doe", "Johnson", "Brown", "Davis"]
+    return f"{random.choice(first_names)} {random.choice(last_names)}"
