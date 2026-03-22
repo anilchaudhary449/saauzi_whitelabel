@@ -1,12 +1,24 @@
+import time
+
 import pytest
 
 from pages.login import Login
 from pages.signup import SignUp
+from pages.home import Home
 from test_data.test_data import *
 
 class TestSaauziWhitelabel:
     email = random_email()
     password = random_password()
+
+    def test_homepage(self, browserSetup):
+        homepage = Home(browserSetup)
+        homepage.click_login()
+        homepage.click_sign_up()
+        homepage.claim_your_spot()
+        homepage.create_your_agency_free()
+        homepage.see_how_it_works()
+
     def test_signup(self, browserSetup):
 
         company_name = random_company_name()
@@ -18,6 +30,7 @@ class TestSaauziWhitelabel:
         signup_page.enter_company_name(company_name)
         signup_page.enter_company_owner(company_owner)
         signup_page.click_submit()
+        signup_page.click_logout()
 
     def test_login(self, browserSetup):
         login_page = Login(browserSetup)

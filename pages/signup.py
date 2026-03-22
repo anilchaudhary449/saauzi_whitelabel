@@ -11,6 +11,9 @@ class SignUp:
         self.companyName = (By.ID, "company_name")
         self.companyOwner = (By.ID, "company_owner")
         self.submitButton = (By.ID, "login-btn")
+        self.profileButton = (By.ID, "appbar-user-dropdown")
+        self.logoutButton  = (By.XPATH,"//div[@class='dropdown__item my-2']")
+        self.signupToast = (By.XPATH,"//div[@class='alert__message']")
 
     def enter_company_name(self, company_name):
         company_Name = self.wait.until(EC.visibility_of_element_located(self.companyName))
@@ -31,4 +34,14 @@ class SignUp:
     def click_submit(self):
         submitButton = self.wait.until(EC.element_to_be_clickable(self.submitButton))
         submitButton.click()
-        time.sleep(2)
+        time.sleep(1)
+        assert "dashboard" in self.driver.current_url, "Signup failed or did not redirect to dashboard"
+    def click_logout(self):
+        self.wait.until(EC.invisibility_of_element_located(self.signupToast))
+        profile_button = self.wait.until(EC.element_to_be_clickable(self.profileButton))
+        profile_button.click()
+        time.sleep(1)
+        logout_button = self.wait.until(EC.presence_of_element_located(self.logoutButton))
+        logout_button.click()
+        time.sleep(1)
+        assert "login" in self.driver.current_url, "Logout failed or did not redirect to login page"
