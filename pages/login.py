@@ -9,6 +9,9 @@ class Login:
         self.email = (By.ID, "email")
         self.password = (By.ID, "password")
         self.submitButton = (By.ID, "login-btn")
+        self.loginToast = (By.XPATH, "//div[@class='alert__message']")
+        self.ClaimYourSpot = (By.CSS_SELECTOR,"button.btn.btn-pumpkin--outline")
+
 
     def enter_email(self,email):
         emailAddress = self.wait.until(EC.visibility_of_element_located(self.email))
@@ -21,4 +24,9 @@ class Login:
     def click_submit(self):
         submitButton = self.wait.until(EC.element_to_be_clickable(self.submitButton))
         submitButton.click()
-        time.sleep(2)
+        loginToast = self.wait.until(EC.visibility_of_element_located(self.loginToast))
+        assert loginToast.is_displayed(), "Login failed or no feedback message displayed"
+
+        claim_your_spot = self.wait.until(EC.visibility_of_element_located(self.ClaimYourSpot))
+        assert claim_your_spot.is_displayed(), "Login failed or did not redirect to dashboard"
+        assert claim_your_spot.is_enabled(), "Claim Your Spot button is not enabled after login"
