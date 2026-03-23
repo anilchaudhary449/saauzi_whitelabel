@@ -6,6 +6,7 @@ class SignUp:
     def __init__(self,driver):
         self.driver = driver
         self.wait = WebDriverWait(self.driver, 20)
+        self.signup = (By.XPATH, "//a[@href='/register']")
         self.email = (By.ID, "company_email")
         self.password = (By.ID, "user_password")
         self.companyName = (By.ID, "company_name")
@@ -14,6 +15,14 @@ class SignUp:
         self.profileButton = (By.ID, "appbar-user-dropdown")
         self.logoutButton  = (By.XPATH,"//div[@class='dropdown__item my-2']")
         self.signupToast = (By.XPATH,"//div[@class='alert__message']")
+
+    def click_signup(self):
+        signupButton = self.wait.until(EC.element_to_be_clickable(self.signup))
+        assert signupButton.is_displayed(), "Sign Up button is not visible on the home page"
+        assert signupButton.is_enabled(), "Sign Up button is not enabled on the home page"
+        signupButton.click()
+        time.sleep(2)
+        assert "register" in self.driver.current_url, "Clicking sign up did not navigate to the registration page"
 
     def enter_company_name(self, company_name):
         company_Name = self.wait.until(EC.visibility_of_element_located(self.companyName))
