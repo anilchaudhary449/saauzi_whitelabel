@@ -13,11 +13,12 @@ class TestSaauziWhitelabel:
 
     def test_homepage(self, browserSetup):
         homepage = Home(browserSetup)
+
+        homepage.create_your_agency_free()
+        homepage.see_how_it_works()
         homepage.click_login()
         homepage.click_sign_up()
         homepage.claim_your_spot()
-        homepage.create_your_agency_free()
-        homepage.see_how_it_works()
 
     def test_signup(self, browserSetup):
 
@@ -25,6 +26,7 @@ class TestSaauziWhitelabel:
         company_owner = random_company_owner()
 
         signup_page = SignUp(browserSetup)
+        signup_page.click_signup()
         signup_page.enter_email(self.email)
         signup_page.enter_password(self.password)
         signup_page.enter_company_name(company_name)
