@@ -35,7 +35,7 @@ jobs:
 
     - name: Upload HTML Report
       if: always()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: pytest-html-report
         path: reports/report.html
@@ -56,5 +56,3 @@ jobs:
           
           📊 [View Workflow](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
           📥 [Download Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
-
-
