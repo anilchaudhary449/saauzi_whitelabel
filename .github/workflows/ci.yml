@@ -97,9 +97,8 @@ jobs:
                 {name: "📊 Status", value: ($status_emoji + " **" + $status + "**"), inline: true},
                 {name: "🌿 Branch", value: ("`" + $branch + "`"), inline: true},
                 {name: "🔗 Commit", value: ("`" + $commit + "`"), inline: true},
-                {name: "👤 Triggered by", value: "[" + $actor + "](https://github.com/" + $actor + ")", inline: true},
-                {name: "⏰ Run Time", value: $run_time, inline: true},
-                {name: "🔍 Workflow", value: "[View Details](" + $run_url + ")", inline: false}
+                {name: "👤 Triggered by", value: "[\($actor)](https://github.com/\($actor))", inline: true},
+                {name: "🔍 Workflow", value: "[View Details](\($run_url))", inline: false}
               ],
               footer: {
                 text: "Saauzi White Label CI/CD",
@@ -167,8 +166,7 @@ jobs:
                 {title: "Status", value: $status_text, short: true},
                 {title: "Branch", value: ("`" + $branch + "`"), short: true},
                 {title: "Commit", value: ("`" + $commit + "`"), short: true},
-                {title: "Triggered by", value: "<https://github.com/" + $actor + "|" + $actor + ">", short: true},
-                {title: "Run Time", value: $run_time, short: true},
+                {title: "Triggered by", value: "<https://github.com/\($actor)|\($actor)>", short: true},
                 {title: "Event", value: "push", short: true}
               ],
               footer: "Saauzi White Label CI/CD",
