@@ -1,4 +1,4 @@
-name: CI
+name: CI - Saauzi White Label
 
 on:
   push:
