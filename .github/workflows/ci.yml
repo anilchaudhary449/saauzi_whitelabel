@@ -36,6 +36,8 @@ jobs:
     - name: Run tests (with retry + reports)
       run: |
         mkdir -p reports
+        echo "TEST_START_TIME=$(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_ENV
+        echo "TEST_START_UNIX=$(date +%s)" >> $GITHUB_ENV
         pytest \
           --tb=short \
           --reruns 2 \
@@ -43,6 +45,8 @@ jobs:
           --html=reports/report.html \
           --self-contained-html \
           --junitxml=reports/junit.xml
+        echo "TEST_END_TIME=$(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_ENV
+        echo "TEST_END_UNIX=$(date +%s)" >> $GITHUB_ENV
 
     - name: Detect Flaky Tests
       if: always()
@@ -62,7 +66,7 @@ jobs:
         path: reports/
         retention-days: 30
 
-        # 🔔 Discord Notification with Report
+    # 🔔 Discord Notification with Report
     - name: Send Discord Notification with Report
       if: always()
       run: |
@@ -75,6 +79,15 @@ jobs:
         REPO="${{ github.repository }}"
         ACTOR="${{ github.actor }}"
         RUN_ID="${{ github.run_id }}"
+        TEST_START="${{ env.TEST_START_TIME }}"
+        TEST_END="${{ env.TEST_END_TIME }}"
+        TEST_START_UNIX="${{ env.TEST_START_UNIX }}"
+        TEST_END_UNIX="${{ env.TEST_END_UNIX }}"
+        
+        # Calculate duration in seconds
+        DURATION=$((TEST_END_UNIX - TEST_START_UNIX))
+        DURATION_MIN=$((DURATION / 60))
+        DURATION_SEC=$((DURATION % 60))
         
         # Build JSON payload safely using jq
         PAYLOAD=$(jq -n \
@@ -87,6 +100,9 @@ jobs:
           --arg commit "$COMMIT_SHA" \
           --arg actor "$ACTOR" \
           --arg run_time "$RUN_TIME" \
+          --arg test_start "$TEST_START" \
+          --arg test_end "$TEST_END" \
+          --arg duration "${DURATION_MIN}m ${DURATION_SEC}s" \
           --arg run_url "https://github.com/${REPO}/actions/runs/${RUN_ID}" \
           '{
             embeds: [{
@@ -98,6 +114,9 @@ jobs:
                 {name: "🌿 Branch", value: ("`" + $branch + "`"), inline: true},
                 {name: "🔗 Commit", value: ("`" + $commit + "`"), inline: true},
                 {name: "👤 Triggered by", value: "[\($actor)](https://github.com/\($actor))", inline: true},
+                {name: "⏱️ Test Start", value: $test_start, inline: true},
+                {name: "⏱️ Test End", value: $test_end, inline: true},
+                {name: "⏲️ Duration", value: $duration, inline: true},
                 {name: "🔍 Workflow", value: "[View Details](\($run_url))", inline: false}
               ],
               footer: {
@@ -142,6 +161,15 @@ jobs:
         REPO="${{ github.repository }}"
         ACTOR="${{ github.actor }}"
         RUN_ID="${{ github.run_id }}"
+        TEST_START="${{ env.TEST_START_TIME }}"
+        TEST_END="${{ env.TEST_END_TIME }}"
+        TEST_START_UNIX="${{ env.TEST_START_UNIX }}"
+        TEST_END_UNIX="${{ env.TEST_END_UNIX }}"
+        
+        # Calculate duration in seconds
+        DURATION=$((TEST_END_UNIX - TEST_START_UNIX))
+        DURATION_MIN=$((DURATION / 60))
+        DURATION_SEC=$((DURATION % 60))
         
         # Build JSON payload safely using jq
         PAYLOAD=$(jq -n \
@@ -154,6 +182,9 @@ jobs:
           --arg actor "$ACTOR" \
           --arg run_time "$RUN_TIME" \
           --arg ts "$TS" \
+          --arg test_start "$TEST_START" \
+          --arg test_end "$TEST_END" \
+          --arg duration "${DURATION_MIN}m ${DURATION_SEC}s" \
           --arg run_url "https://github.com/${REPO}/actions/runs/${RUN_ID}" \
           '{
             text: $text,
@@ -167,6 +198,9 @@ jobs:
                 {title: "Branch", value: ("`" + $branch + "`"), short: true},
                 {title: "Commit", value: ("`" + $commit + "`"), short: true},
                 {title: "Triggered by", value: "<https://github.com/\($actor)|\($actor)>", short: true},
+                {title: "Test Start", value: $test_start, short: true},
+                {title: "Test End", value: $test_end, short: true},
+                {title: "Duration", value: $duration, short: true},
                 {title: "Event", value: "push", short: true}
               ],
               footer: "Saauzi White Label CI/CD",
