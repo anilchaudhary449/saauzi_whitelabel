@@ -38,3 +38,7 @@ def client_data():
     client_email = f"{client_name.lower()}@example.com"
     client_phone = ''.join(random.choice(string.digits) for i in range(10))
     return client_name, client_email, client_phone
+
+def random_number_of_subscriptions(start=10, end=1000):
+    import random
+    return random.randint(start, end)
