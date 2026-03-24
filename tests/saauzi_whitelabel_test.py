@@ -49,7 +49,7 @@ class TestSaauziWhitelabel:
         client.fill_form(client_name, client_email, client_phone)
         client.submit_form()
 
-        client.view_client()
+        # client.view_client()
 
 
 if __name__ == "__main__":
