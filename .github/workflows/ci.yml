@@ -62,127 +62,133 @@ jobs:
         path: reports/
         retention-days: 30
 
-    # 🔔 Discord Notification
+        # 🔔 Discord Notification with Report
     - name: Send Discord Notification with Report
       if: always()
       run: |
         STATUS="${{ job.status }}"
         STATUS_EMOJI=$([ "$STATUS" == "success" ] && echo "✅" || echo "❌")
         COLOR=$([ "$STATUS" == "success" ] && echo "65280" || echo "16711680")
-        BADGE_COLOR=$([ "$STATUS" == "success" ] && echo "brightgreen" || echo "red")
         RUN_TIME=$(date -u +"%Y-%m-%d %H:%M UTC")
-
-        FLAKY_MSG=""
-        if [ "${FLAKY}" == "true" ]; then
-          FLAKY_MSG="⚠️ Flaky tests detected\n"
-        fi
-
-        PAYLOAD=$(cat <<EOF
-        {
-          "embeds": [{
-            "title": "🧪 Test Execution Report",
-            "description": "${FLAKY_MSG}Automated test suite results for **${{ github.repository }}**",
-            "color": $COLOR,
-            "thumbnail": {
-              "url": "https://img.shields.io/badge/tests-$STATUS-$BADGE_COLOR.svg"
-            },
-            "fields": [
-              {"name": "📊 Status", "value": "$STATUS_EMOJI **$STATUS**", "inline": true},
-              {"name": "🌿 Branch", "value": "\`${{ github.ref_name }}\`", "inline": true},
-              {"name": "🔗 Commit", "value": "\`${{ github.sha }}\`", "inline": true},
-              {"name": "👤 Actor", "value": "${{ github.actor }}", "inline": true},
-              {"name": "⏰ Run Time", "value": "$RUN_TIME", "inline": true},
-              {"name": "🔍 Workflow", "value": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}", "inline": false}
-            ],
-            "footer": {
-              "text": "Saauzi White Label CI/CD",
-              "icon_url": "https://github.com/actions.png"
-            }
-          }]
-        }
-        EOF
-        )
-
-        curl -s -X POST ${{ secrets.DISCORD_WEBHOOK }} \
+        COMMIT_SHA="${{ github.sha }}"
+        BRANCH="${{ github.ref_name }}"
+        REPO="${{ github.repository }}"
+        ACTOR="${{ github.actor }}"
+        RUN_ID="${{ github.run_id }}"
+        
+        # Build JSON payload safely using jq
+        PAYLOAD=$(jq -n \
+          --arg title "🧪 Test Execution Report" \
+          --arg description "Automated test suite results for **${REPO}**" \
+          --arg color "$COLOR" \
+          --arg status_emoji "$STATUS_EMOJI" \
+          --arg status "$STATUS" \
+          --arg branch "$BRANCH" \
+          --arg commit "$COMMIT_SHA" \
+          --arg actor "$ACTOR" \
+          --arg run_time "$RUN_TIME" \
+          --arg run_url "https://github.com/${REPO}/actions/runs/${RUN_ID}" \
+          '{
+            embeds: [{
+              title: $title,
+              description: $description,
+              color: ($color | tonumber),
+              fields: [
+                {name: "📊 Status", value: ($status_emoji + " **" + $status + "**"), inline: true},
+                {name: "🌿 Branch", value: ("`" + $branch + "`"), inline: true},
+                {name: "🔗 Commit", value: ("`" + $commit + "`"), inline: true},
+                {name: "👤 Triggered by", value: "[" + $actor + "](https://github.com/" + $actor + ")", inline: true},
+                {name: "⏰ Run Time", value: $run_time, inline: true},
+                {name: "🔍 Workflow", value: "[View Details](" + $run_url + ")", inline: false}
+              ],
+              footer: {
+                text: "Saauzi White Label CI/CD",
+                icon_url: "https://github.com/actions.png"
+              }
+            }]
+          }')
+        
+        curl -X POST "${{ secrets.DISCORD_WEBHOOK }}" \
           -H "Content-Type: application/json" \
-          -d "$PAYLOAD" || echo "⚠️ Discord notification failed"
-
-        # Upload report (check size)
+          -d "$PAYLOAD"
+        
+        # Upload report file to Discord
         if [ -f "reports/report.html" ]; then
           FILE_SIZE=$(stat -c%s "reports/report.html")
-          if [ "$FILE_SIZE" -lt 8000000 ]; then
-            curl -s -X POST ${{ secrets.DISCORD_WEBHOOK }} \
-              -F "file=@reports/report.html" \
-              -F "payload_json={\"content\":\"📊 Detailed Test Report Attached\"}" \
-              || echo "⚠️ Discord file upload failed"
+          echo "📊 Report file size: $FILE_SIZE bytes"
+          if [ "$FILE_SIZE" -gt 8000000 ]; then
+            echo "⚠️ Report file is too large for Discord (8MB limit)"
+            curl -X POST "${{ secrets.DISCORD_WEBHOOK }}" \
+              -H "Content-Type: application/json" \
+              -d '{"content":"📊 **Report too large to attach (over 8MB)** - View artifact in GitHub Actions"}'
           else
-            echo "⚠️ Report too large for Discord"
+            curl -s -w "\nHTTP_STATUS:%{http_code}" \
+              -X POST "${{ secrets.DISCORD_WEBHOOK }}" \
+              -F "file=@reports/report.html" \
+              -F 'payload_json={"content":"📊 **Detailed Test Report Attached**"}'
           fi
         fi
 
-    # 🔔 Slack Notification
+    # 🔔 Slack Notification with Report
     - name: Send Slack Notification with Report
       if: always()
       run: |
         STATUS="${{ job.status }}"
         STATUS_TEXT=$([ "$STATUS" == "success" ] && echo "✅ PASSED" || echo "❌ FAILED")
-        COLOR=$([ "$STATUS" == "success" ] && echo "#2eb886" || echo "#e01e5a")
+        COLOR=$([ "$STATUS" == "success" ] && echo "good" || echo "danger")
         RUN_TIME=$(date -u +"%Y-%m-%d %H:%M UTC")
-
-        FLAKY_TEXT=""
-        if [ "${FLAKY}" == "true" ]; then
-          FLAKY_TEXT="⚠️ *Flaky tests detected!*\n"
-        fi
-
-        PAYLOAD=$(cat <<EOF
-        {
-          "blocks": [
-            {
-              "type": "header",
-              "text": { "type": "plain_text", "text": "🧪 Test Execution Report" }
-            },
-            {
-              "type": "section",
-              "text": {
-                "type": "mrkdwn",
-                "text": "${FLAKY_TEXT}*Repo:* ${{ github.repository }}"
-              }
-            },
-            {
-              "type": "section",
-              "fields": [
-                { "type": "mrkdwn", "text": "*Status:*\n$STATUS_TEXT" },
-                { "type": "mrkdwn", "text": "*Branch:*\n\`${{ github.ref_name }}\`" },
-                { "type": "mrkdwn", "text": "*Actor:*\n${{ github.actor }}" },
-                { "type": "mrkdwn", "text": "*Event:*\n${{ github.event_name }}" },
-                { "type": "mrkdwn", "text": "*Run Time:*\n$RUN_TIME" }
-              ]
-            },
-            {
-              "type": "actions",
-              "elements": [
-                {
-                  "type": "button",
-                  "text": { "type": "plain_text", "text": "View Workflow" },
-                  "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-                }
-              ]
-            }
-          ]
-        }
-        EOF
-        )
-
-        curl -s -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
-          -H "Content-Type: application/json" \
-          -d "$PAYLOAD" || echo "⚠️ Slack notification failed"
-
-        # Upload report to Slack
-        if [ -f "reports/report.html" ] && [ -n "${{ secrets.SLACK_BOT_TOKEN }}" ]; then
-          curl -s -F file=@reports/report.html \
-            -F "initial_comment=📊 Detailed Test Report" \
-            -F channels=${{ secrets.SLACK_CHANNEL_ID }} \
+        TS=$(date +%s)
+        COMMIT_SHA="${{ github.sha }}"
+        BRANCH="${{ github.ref_name }}"
+        REPO="${{ github.repository }}"
+        ACTOR="${{ github.actor }}"
+        RUN_ID="${{ github.run_id }}"
+        
+        # Build JSON payload safely using jq
+        PAYLOAD=$(jq -n \
+          --arg text "🧪 *Test Execution Report*" \
+          --arg pretext "Automated test suite results for *${REPO}*" \
+          --arg color "$COLOR" \
+          --arg status_text "$STATUS_TEXT" \
+          --arg branch "$BRANCH" \
+          --arg commit "$COMMIT_SHA" \
+          --arg actor "$ACTOR" \
+          --arg run_time "$RUN_TIME" \
+          --arg ts "$TS" \
+          --arg run_url "https://github.com/${REPO}/actions/runs/${RUN_ID}" \
+          '{
+            text: $text,
+            attachments: [{
+              pretext: $pretext,
+              color: $color,
+              title: "📊 Test Results",
+              title_link: $run_url,
+              fields: [
+                {title: "Status", value: $status_text, short: true},
+                {title: "Branch", value: ("`" + $branch + "`"), short: true},
+                {title: "Commit", value: ("`" + $commit + "`"), short: true},
+                {title: "Triggered by", value: "<https://github.com/" + $actor + "|" + $actor + ">", short: true},
+                {title: "Run Time", value: $run_time, short: true},
+                {title: "Event", value: "push", short: true}
+              ],
+              footer: "Saauzi White Label CI/CD",
+              footer_icon: "https://github.com/favicon.ico",
+              ts: ($ts | tonumber)
+            }]
+          }')
+        
+        curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
+          -H 'Content-Type: application/json' \
+          -d "$PAYLOAD"
+        
+        # Upload report file to Slack
+        if [ -f "reports/report.html" ]; then
+          FILE_SIZE=$(stat -c%s "reports/report.html")
+          echo "📊 Report file size: $FILE_SIZE bytes"
+          curl -s -X POST \
+            -F file=@reports/report.html \
+            -F "initial_comment=📊 *Detailed Test Report Attached* from ${REPO}" \
+            -F channels="${{ secrets.SLACK_CHANNEL_ID }}" \
             -H "Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}" \
-            https://slack.com/api/files.upload \
-            || echo "⚠️ Slack file upload failed"
+            https://slack.com/api/files.upload
         fi
