@@ -31,4 +31,30 @@ jobs:
         sudo apt-get install -y google-chrome-stable
 
     - name: Run tests
-      run: pytest --tb=short
+      run: pytest --tb=short --html=reports/report.html --self-contained-html
+
+    - name: Upload HTML Report
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: pytest-html-report
+        path: reports/report.html
+        retention-days: 30
+
+    - name: Send Discord Notification
+      if: always()
+      uses: tsickert/discord-webhook@v5.3.0
+      with:
+        webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+        content: |
+          🧪 **Test Report** - ${{ github.repository }}
+          
+          **Status**: ${{ job.status == 'success' && '✅ PASSED' || '❌ FAILED' }}
+          **Branch**: `${{ github.ref_name }}`
+          **Commit**: `${{ github.sha }}`
+          **Actor**: ${{ github.actor }}
+          
+          📊 [View Workflow](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          📥 [Download Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+
