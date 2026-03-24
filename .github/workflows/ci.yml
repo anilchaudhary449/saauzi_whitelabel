@@ -33,7 +33,9 @@ jobs:
         sudo apt-get install -y google-chrome-stable
 
     - name: Run tests
-      run: pytest --tb=short --html=reports/report.html --self-contained-html
+      run: |
+        mkdir -p reports
+        pytest --tb=short --html=reports/report.html --self-contained-html
 
     - name: Upload HTML Report
       if: always()
@@ -80,9 +82,27 @@ jobs:
         
         # Upload report file to Discord
         if [ -f "reports/report.html" ]; then
-          curl -X POST ${{ secrets.DISCORD_WEBHOOK }} \
-            -F "file=@reports/report.html" \
-            -F "payload_json={\"content\":\"📊 **Detailed Test Report Attached**\"}"
+          FILE_SIZE=$(stat -c%s "reports/report.html")
+          echo "📊 Report file size: $FILE_SIZE bytes"
+          if [ "$FILE_SIZE" -gt 8000000 ]; then
+            echo "⚠️ Report file is too large for Discord (8MB limit), skipping attachment"
+            curl -X POST ${{ secrets.DISCORD_WEBHOOK }} \
+              -H "Content-Type: application/json" \
+              -d '{"content":"📊 **Report too large to attach (over 8MB)** - View artifact in GitHub Actions"}'
+          else
+            UPLOAD_RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
+              -X POST ${{ secrets.DISCORD_WEBHOOK }} \
+              -F "file=@reports/report.html" \
+              -F "payload_json={\"content\":\"📊 **Detailed Test Report Attached**\"}")
+            if echo "$UPLOAD_RESPONSE" | grep -q "HTTP_STATUS:200"; then
+              echo "✅ Report uploaded successfully to Discord"
+            else
+              echo "❌ Failed to upload report to Discord"
+              echo "Response: $UPLOAD_RESPONSE"
+            fi
+          fi
+        else
+          echo "❌ Report file not found at reports/report.html"
         fi
 
     # 🔔 Slack Notification with Report
@@ -121,6 +141,8 @@ jobs:
         
         # Upload report file to Slack
         if [ -f "reports/report.html" ]; then
+          FILE_SIZE=$(stat -c%s "reports/report.html")
+          echo "📊 Report file size: $FILE_SIZE bytes"
           echo "📊 Uploading HTML report to Slack..."
           UPLOAD_RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
             -F file=@reports/report.html \
