@@ -9,7 +9,7 @@ on:
     - cron: '0 2,10,15,22 * * *' # 2 AM, 10 AM, 3 PM, and 10 PM UTC
 
 jobs:
-  test:
+  test-saauzi-white-label:
     runs-on: ubuntu-latest
 
     steps:
