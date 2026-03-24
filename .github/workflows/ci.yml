@@ -50,21 +50,31 @@ jobs:
         # Prepare Discord message
         STATUS="${{ job.status }}"
         STATUS_EMOJI=$([ "$STATUS" == "success" ] && echo "✅" || echo "❌")
+        COLOR=$([ "$STATUS" == "success" ] && echo "65280" || echo "16711680")
         
         # Send message with webhook
         curl -X POST ${{ secrets.DISCORD_WEBHOOK }} \
           -H "Content-Type: application/json" \
           -d '{
-            "content": "🧪 **Test Report** - ${{ github.repository }}",
             "embeds": [{
-              "color": '$([ "$STATUS" == "success" ] && echo "65280" || echo "16711680")',
+              "title": "🧪 Test Execution Report",
+              "description": "Automated test suite results for **${{ github.repository }}**",
+              "color": '$COLOR',
+              "thumbnail": {
+                "url": "https://img.shields.io/badge/Tests-'$STATUS'-'$([ "$STATUS" == "success" ] && echo "brightgreen" || echo "red")'.svg"
+              },
               "fields": [
-                {"name": "Status", "value": "'$STATUS_EMOJI' '$STATUS'", "inline": true},
-                {"name": "Branch", "value": "`${{ github.ref_name }}`", "inline": true},
-                {"name": "Commit", "value": "`${{ github.sha }}`", "inline": true},
-                {"name": "Actor", "value": "[${{ github.actor }}](https://github.com/${{ github.actor }})", "inline": true},
-                {"name": "Workflow", "value": "[View Details](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})", "inline": false}
-              ]
+                {"name": "📊 Status", "value": "'$STATUS_EMOJI' **'$STATUS'**", "inline": true},
+                {"name": "🌿 Branch", "value": "`${{ github.ref_name }}`", "inline": true},
+                {"name": "🔗 Commit", "value": "`${{ github.sha }}`", "inline": true},
+                {"name": "👤 Triggered by", "value": "[${{ github.actor }}](https://github.com/${{ github.actor }})", "inline": true},
+                {"name": "⏰ Run Time", "value": "'$(date -u +"%Y-%m-%d %H:%M UTC")'", "inline": true},
+                {"name": "🔍 Workflow", "value": "[View Details](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})", "inline": false}
+              ],
+              "footer": {
+                "text": "Saauzi White Label CI/CD",
+                "icon_url": "https://github.com/actions.png"
+              }
             }]
           }'
         
@@ -72,7 +82,7 @@ jobs:
         if [ -f "reports/report.html" ]; then
           curl -X POST ${{ secrets.DISCORD_WEBHOOK }} \
             -F "file=@reports/report.html" \
-            -F "payload_json={\"content\":\"📊 Test Report HTML Attached\"}"
+            -F "payload_json={\"content\":\"📊 **Detailed Test Report Attached**\"}"
         fi
 
     # 🔔 Slack Notification with Report
@@ -80,26 +90,31 @@ jobs:
       if: always()
       run: |
         # Send Slack message
+        STATUS="${{ job.status }}"
+        STATUS_TEXT=$([ "$STATUS" == "success" ] && echo "✅ PASSED" || echo "❌ FAILED")
+        COLOR=$([ "$STATUS" == "success" ] && echo "good" || echo "danger")
+        
         curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
           -H 'Content-Type: application/json' \
           -d '{
-            "text": "🧪 Test Report - ${{ github.repository }}",
+            "text": "🧪 *Test Execution Report*",
             "attachments": [
               {
-                "color": "${{ job.status == 'success' && 'good' || 'danger' }}",
+                "pretext": "Automated test suite results for *${{ github.repository }}*",
+                "color": "'$COLOR'",
+                "title": "📊 Test Results",
+                "title_link": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}",
                 "fields": [
-                  { "title": "Status", "value": "${{ job.status == 'success' && '✅ PASSED' || '❌ FAILED' }}", "short": true },
-                  { "title": "Branch", "value": "${{ github.ref_name }}", "short": true },
-                  { "title": "Commit", "value": "${{ github.sha }}", "short": true },
-                  { "title": "Actor", "value": "<https://github.com/${{ github.actor }}|${{ github.actor }}>", "short": true }
+                  { "title": "Status", "value": "'$STATUS_TEXT'", "short": true },
+                  { "title": "Branch", "value": "`${{ github.ref_name }}`", "short": true },
+                  { "title": "Commit", "value": "`${{ github.sha }}`", "short": true },
+                  { "title": "Triggered by", "value": "<https://github.com/${{ github.actor }}|${{ github.actor }}>", "short": true },
+                  { "title": "Run Time", "value": "'$(date -u +"%Y-%m-%d %H:%M UTC")'", "short": true },
+                  { "title": "Event", "value": "${{ github.event_name }}", "short": true }
                 ],
-                "actions": [
-                  {
-                    "type": "button",
-                    "text": "View Workflow",
-                    "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-                  }
-                ]
+                "footer": "Saauzi White Label CI/CD",
+                "footer_icon": "https://github.com/favicon.ico",
+                "ts": "'$(date +%s)'"
               }
             ]
           }'
@@ -109,7 +124,7 @@ jobs:
           echo "📊 Uploading HTML report to Slack..."
           UPLOAD_RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
             -F file=@reports/report.html \
-            -F "initial_comment=📊 Test Report HTML from ${{ github.repository }}" \
+            -F "initial_comment=📊 *Detailed Test Report Attached* from ${{ github.repository }}" \
             -F channels=${{ secrets.SLACK_CHANNEL_ID }} \
             -H "Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}" \
             https://slack.com/api/files.upload)
