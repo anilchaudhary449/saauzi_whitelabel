@@ -51,4 +51,4 @@ class TestSaauziWhitelabel:
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main('tests/saauzi_whitelabel_test.py -k "test_homepage or test_signup or test_login or test_client" -v -s')
