@@ -84,6 +84,13 @@ jobs:
         TEST_START_UNIX="${{ env.TEST_START_UNIX }}"
         TEST_END_UNIX="${{ env.TEST_END_UNIX }}"
         
+        # Repository metadata (hardcoded for this repo)
+        REPO_ID="1185999214"
+        REPO_DESC="Your software agency. Starts today. No developers. No servers. No setup cost. Register, pick your theme, and start selling."
+        OWNER_AVATAR="https://avatars.githubusercontent.com/u/87251166?v=4"
+        OWNER_URL="https://github.com/anilchaudhary449"
+        OWNER_LOGIN="anilchaudhary449"
+        
         # Calculate duration in seconds
         DURATION=$((TEST_END_UNIX - TEST_START_UNIX))
         DURATION_MIN=$((DURATION / 60))
@@ -92,7 +99,7 @@ jobs:
         # Build JSON payload safely using jq
         PAYLOAD=$(jq -n \
           --arg title "🧪 Test Execution Report" \
-          --arg description "Automated test suite results for **${REPO}**" \
+          --arg description "$REPO_DESC" \
           --arg color "$COLOR" \
           --arg status_emoji "$STATUS_EMOJI" \
           --arg status "$STATUS" \
@@ -103,13 +110,28 @@ jobs:
           --arg test_start "$TEST_START" \
           --arg test_end "$TEST_END" \
           --arg duration "${DURATION_MIN}m ${DURATION_SEC}s" \
+          --arg repo_id "$REPO_ID" \
+          --arg repo "$REPO" \
+          --arg owner_login "$OWNER_LOGIN" \
+          --arg owner_url "$OWNER_URL" \
+          --arg owner_avatar "$OWNER_AVATAR" \
           --arg run_url "https://github.com/${REPO}/actions/runs/${RUN_ID}" \
           '{
             embeds: [{
               title: $title,
               description: $description,
               color: ($color | tonumber),
+              thumbnail: {
+                url: $owner_avatar
+              },
+              author: {
+                name: $owner_login,
+                url: $owner_url,
+                icon_url: $owner_avatar
+              },
               fields: [
+                {name: "🆔 Repository ID", value: $repo_id, inline: true},
+                {name: "📦 Repository", value: ("`" + $repo + "`"), inline: true},
                 {name: "📊 Status", value: ($status_emoji + " **" + $status + "**"), inline: true},
                 {name: "🌿 Branch", value: ("`" + $branch + "`"), inline: true},
                 {name: "🔗 Commit", value: ("`" + $commit + "`"), inline: true},
@@ -166,6 +188,13 @@ jobs:
         TEST_START_UNIX="${{ env.TEST_START_UNIX }}"
         TEST_END_UNIX="${{ env.TEST_END_UNIX }}"
         
+        # Repository metadata (hardcoded for this repo)
+        REPO_ID="1185999214"
+        REPO_DESC="Your software agency. Starts today. No developers. No servers. No setup cost. Register, pick your theme, and start selling."
+        OWNER_AVATAR="https://avatars.githubusercontent.com/u/87251166?v=4"
+        OWNER_URL="https://github.com/anilchaudhary449"
+        OWNER_LOGIN="anilchaudhary449"
+        
         # Calculate duration in seconds
         DURATION=$((TEST_END_UNIX - TEST_START_UNIX))
         DURATION_MIN=$((DURATION / 60))
@@ -174,7 +203,7 @@ jobs:
         # Build JSON payload safely using jq
         PAYLOAD=$(jq -n \
           --arg text "🧪 *Test Execution Report*" \
-          --arg pretext "Automated test suite results for *${REPO}*" \
+          --arg pretext "$REPO_DESC" \
           --arg color "$COLOR" \
           --arg status_text "$STATUS_TEXT" \
           --arg branch "$BRANCH" \
@@ -185,6 +214,11 @@ jobs:
           --arg test_start "$TEST_START" \
           --arg test_end "$TEST_END" \
           --arg duration "${DURATION_MIN}m ${DURATION_SEC}s" \
+          --arg repo_id "$REPO_ID" \
+          --arg repo "$REPO" \
+          --arg owner_login "$OWNER_LOGIN" \
+          --arg owner_url "$OWNER_URL" \
+          --arg owner_avatar "$OWNER_AVATAR" \
           --arg run_url "https://github.com/${REPO}/actions/runs/${RUN_ID}" \
           '{
             text: $text,
@@ -193,7 +227,13 @@ jobs:
               color: $color,
               title: "📊 Test Results",
               title_link: $run_url,
+              author_name: $owner_login,
+              author_link: $owner_url,
+              author_icon: $owner_avatar,
+              thumb_url: $owner_avatar,
               fields: [
+                {title: "🆔 Repository ID", value: $repo_id, short: true},
+                {title: "📦 Repository", value: ("`" + $repo + "`"), short: true},
                 {title: "Status", value: $status_text, short: true},
                 {title: "Branch", value: ("`" + $branch + "`"), short: true},
                 {title: "Commit", value: ("`" + $commit + "`"), short: true},
