@@ -106,9 +106,21 @@ jobs:
         
         # Upload report file to Slack
         if [ -f "reports/report.html" ]; then
-          curl -F file=@reports/report.html \
+          echo "📊 Uploading HTML report to Slack..."
+          UPLOAD_RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
+            -F file=@reports/report.html \
             -F "initial_comment=📊 Test Report HTML from ${{ github.repository }}" \
             -F channels=${{ secrets.SLACK_CHANNEL_ID }} \
             -H "Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}" \
-            https://slack.com/api/files.upload
+            https://slack.com/api/files.upload)
+          
+          # Check if upload was successful
+          if echo "$UPLOAD_RESPONSE" | grep -q '"ok":true'; then
+            echo "✅ Report uploaded successfully to Slack"
+          else
+            echo "❌ Failed to upload report to Slack"
+            echo "Response: $UPLOAD_RESPONSE"
+          fi
+        else
+          echo "❌ Report file not found at reports/report.html"
         fi
