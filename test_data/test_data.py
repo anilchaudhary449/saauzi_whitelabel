@@ -27,3 +27,14 @@ def random_company_owner():
     first_names = ["John", "Jane", "Alex", "Emily", "Michael"]
     last_names = ["Smith", "Doe", "Johnson", "Brown", "Davis"]
     return f"{random.choice(first_names)} {random.choice(last_names)}"
+
+dashboard_contents =["Total Accounts Purchased","Total Accounts Created","Total Accounts Remaining","Total Paid Amount","Total Pending Amount","Active Subscriptions"]
+client_summary_contents = ["Total Clients","Total Paid Clients","Today New Clients"]
+
+def client_data():
+    import random
+    import string
+    client_name = ''.join(random.choice(string.ascii_uppercase) for i in range(5))
+    client_email = f"{client_name.lower()}@example.com"
+    client_phone = ''.join(random.choice(string.digits) for i in range(10))
+    return client_name, client_email, client_phone
