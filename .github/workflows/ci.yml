@@ -45,29 +45,46 @@ jobs:
         path: reports/report.html
         retention-days: 30
 
-    # 🔔 Discord Notification (kept as-is)
-    - name: Send Discord Notification
+    # 🔔 Discord Notification with Report
+    - name: Send Discord Notification with Report
       if: always()
-      uses: tsickert/discord-webhook@v5.3.0
-      with:
-        webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-        content: |
-          🧪 **Test Report** - ${{ github.repository }}
-          
-          **Status**: ${{ job.status == 'success' && '✅ PASSED' || '❌ FAILED' }}
-          **Branch**: `${{ github.ref_name }}`
-          **Commit**: `${{ github.sha }}`
-          **Actor**: ${{ github.actor }}
-          
-          📊 https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: |
+        # Prepare Discord message
+        STATUS="${{ job.status }}"
+        STATUS_EMOJI=$([ "$STATUS" == "success" ] && echo "✅" || echo "❌")
+        
+        # Send message with webhook
+        curl -X POST ${{ secrets.DISCORD_WEBHOOK }} \
+          -H "Content-Type: application/json" \
+          -d '{
+            "content": "🧪 **Test Report** - ${{ github.repository }}",
+            "embeds": [{
+              "color": '$([ "$STATUS" == "success" ] && echo "65280" || echo "16711680")',
+              "fields": [
+                {"name": "Status", "value": "'$STATUS_EMOJI' '$STATUS'", "inline": true},
+                {"name": "Branch", "value": "`${{ github.ref_name }}`", "inline": true},
+                {"name": "Commit", "value": "`${{ github.sha }}`", "inline": true},
+                {"name": "Actor", "value": "${{ github.actor }}", "inline": true},
+                {"name": "Workflow", "value": "[View Details](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})", "inline": false}
+              ]
+            }]
+          }'
+        
+        # Upload report file to Discord
+        if [ -f "reports/report.html" ]; then
+          curl -X POST ${{ secrets.DISCORD_WEBHOOK }} \
+            -F "file=@reports/report.html" \
+            -F "payload_json={\"content\":\"📊 Test Report HTML Attached\"}"
+        fi
 
-    # 🔔 Slack Notification with HTML Report
+    # 🔔 Slack Notification with Report
     - name: Send Slack Notification with Report
       if: always()
-      uses: slackapi/slack-github-action@v1.25.0
-      with:
-        payload: |
-          {
+      run: |
+        # Send Slack message
+        curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
+          -H 'Content-Type: application/json' \
+          -d '{
             "text": "🧪 Test Report - ${{ github.repository }}",
             "attachments": [
               {
@@ -87,15 +104,12 @@ jobs:
                 ]
               }
             ]
-          }
-      env:
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-
-    - name: Upload Report to Slack
-      if: always()
-      run: |
+          }'
+        
+        # Upload report file to Slack
         if [ -f "reports/report.html" ]; then
-          curl -F file=@reports/report.html -F "initial_comment=📊 Test Report from ${{ github.repository }}" \
+          curl -F file=@reports/report.html \
+            -F "initial_comment=📊 Test Report HTML from ${{ github.repository }}" \
             -F channels=${{ secrets.SLACK_CHANNEL_ID }} \
             -H "Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}" \
             https://slack.com/api/files.upload
