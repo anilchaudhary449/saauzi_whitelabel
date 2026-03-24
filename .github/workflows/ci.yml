@@ -45,6 +45,7 @@ jobs:
         path: reports/report.html
         retention-days: 30
 
+    # 🔔 Discord Notification (kept as-is)
     - name: Send Discord Notification
       if: always()
       uses: tsickert/discord-webhook@v5.3.0
@@ -58,5 +59,33 @@ jobs:
           **Commit**: `${{ github.sha }}`
           **Actor**: ${{ github.actor }}
           
-          📊 [View Workflow](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
-          📥 [Download Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          📊 https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+    # 🔔 NEW: Slack Notification
+    - name: Send Slack Notification
+      if: always()
+      uses: slackapi/slack-github-action@v1.24.0
+      with:
+        payload: |
+          {
+            "text": "🧪 Test Report - ${{ github.repository }}",
+            "attachments": [
+              {
+                "color": "${{ job.status == 'success' && 'good' || 'danger' }}",
+                "fields": [
+                  { "title": "Status", "value": "${{ job.status == 'success' && '✅ PASSED' || '❌ FAILED' }}", "short": true },
+                  { "title": "Branch", "value": "${{ github.ref_name }}", "short": true },
+                  { "title": "Actor", "value": "${{ github.actor }}", "short": true }
+                ],
+                "actions": [
+                  {
+                    "type": "button",
+                    "text": "View Workflow",
+                    "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                  }
+                ]
+              }
+            ]
+          }
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
