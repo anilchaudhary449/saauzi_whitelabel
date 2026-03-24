@@ -49,6 +49,8 @@ class TestSaauziWhitelabel:
         client.fill_form(client_name, client_email, client_phone)
         client.submit_form()
 
+        client.view_client()
+
 
 if __name__ == "__main__":
     pytest.main('tests/saauzi_whitelabel_test.py -k "test_homepage or test_signup or test_login or test_client" -v -s')
