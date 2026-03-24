@@ -46,7 +46,7 @@ class Home:
 
     def create_your_agency_free(self):
         create_your_agency = self.wait.until(EC.presence_of_element_located(self.createYourAgency))
-        # self.driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", create_your_agency)
+        self.driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", create_your_agency)
         assert create_your_agency.is_displayed(), "Create Your Agency button is not visible on the home page"
         assert create_your_agency.is_enabled(), "Create Your Agency button is not enabled on the home page"
         create_your_agency.click()
