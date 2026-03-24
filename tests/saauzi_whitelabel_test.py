@@ -1,5 +1,6 @@
 import pytest
 from pages.clients import Clients
+from pages.company_subscriptions import CompanySubscriptions
 from pages.dashboard import Dashboard
 from pages.login import Login
 from pages.signup import SignUp
@@ -50,7 +51,12 @@ class TestSaauziWhitelabel:
         client.submit_form()
 
         # client.view_client()
-
+    def test_company_subscriptions(self, browserSetup):
+        no_of_subscriptions = random_number_of_subscriptions()
+        company_subscription = CompanySubscriptions(browserSetup)
+        company_subscription.click_subscription_tab()
+        company_subscription.click_create_subscription()
+        company_subscription.fill_subscription_form(no_of_subscriptions)
 
 if __name__ == "__main__":
-    pytest.main('tests/saauzi_whitelabel_test.py -k "test_homepage or test_signup or test_login or test_client" -v -s')
+    pytest.main('tests/saauzi_whitelabel_test.py -k "test_homepage or test_signup or test_login or test_client or test_company_subscription" -v -s')
