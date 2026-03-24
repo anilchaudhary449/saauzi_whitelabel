@@ -11,14 +11,12 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v4.2.0
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v5.1.0
       with:
         python-version: '3.10'
 
@@ -39,7 +37,7 @@ jobs:
 
     - name: Upload HTML Report
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v4.4.0
       with:
         name: pytest-html-report
         path: reports/report.html
@@ -64,7 +62,7 @@ jobs:
                 {"name": "Status", "value": "'$STATUS_EMOJI' '$STATUS'", "inline": true},
                 {"name": "Branch", "value": "`${{ github.ref_name }}`", "inline": true},
                 {"name": "Commit", "value": "`${{ github.sha }}`", "inline": true},
-                {"name": "Actor", "value": "${{ github.actor }}", "inline": true},
+                {"name": "Actor", "value": "[${{ github.actor }}](https://github.com/${{ github.actor }})", "inline": true},
                 {"name": "Workflow", "value": "[View Details](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})", "inline": false}
               ]
             }]
@@ -93,7 +91,7 @@ jobs:
                   { "title": "Status", "value": "${{ job.status == 'success' && '✅ PASSED' || '❌ FAILED' }}", "short": true },
                   { "title": "Branch", "value": "${{ github.ref_name }}", "short": true },
                   { "title": "Commit", "value": "${{ github.sha }}", "short": true },
-                  { "title": "Actor", "value": "${{ github.actor }}", "short": true }
+                  { "title": "Actor", "value": "<https://github.com/${{ github.actor }}|${{ github.actor }}>", "short": true }
                 ],
                 "actions": [
                   {
