@@ -6,7 +6,7 @@ class SignUp:
     def __init__(self,driver):
         self.driver = driver
         self.wait = WebDriverWait(self.driver, 20)
-        self.signup = (By.XPATH, "//a[@href='/register']")
+        self.signup = (By.XPATH, "//a[@href='/register' and contains(text(),'Start for Free')]")
         self.email = (By.ID, "company_email")
         self.password = (By.ID, "user_password")
         self.companyName = (By.ID, "company_name")
@@ -44,6 +44,7 @@ class SignUp:
         submitButton = self.wait.until(EC.element_to_be_clickable(self.submitButton))
         submitButton.click()
         time.sleep(1)
+        self.wait.until(EC.url_contains("dashboard"))
         assert "dashboard" in self.driver.current_url, "Signup failed or did not redirect to dashboard"
     def click_logout(self):
         self.wait.until(EC.invisibility_of_element_located(self.signupToast))
