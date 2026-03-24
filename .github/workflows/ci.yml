@@ -36,8 +36,6 @@ jobs:
     - name: Run tests (with retry + reports)
       run: |
         mkdir -p reports
-        echo "TEST_START_TIME=$(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_ENV
-        echo "TEST_START_UNIX=$(date +%s)" >> $GITHUB_ENV
         pytest \
           --tb=short \
           --reruns 2 \
@@ -45,15 +43,13 @@ jobs:
           --html=reports/report.html \
           --self-contained-html \
           --junitxml=reports/junit.xml
-        echo "TEST_END_TIME=$(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_ENV
-        echo "TEST_END_UNIX=$(date +%s)" >> $GITHUB_ENV
 
     - name: Detect Flaky Tests
       if: always()
       run: |
         if [ -f "reports/junit.xml" ] && grep -q "RERUN" reports/junit.xml; then
           echo "FLAKY=true" >> $GITHUB_ENV
-          echo "⚠️ Flaky tests detected"
+          echo "���️ Flaky tests detected"
         else
           echo "FLAKY=false" >> $GITHUB_ENV
         fi
@@ -79,27 +75,11 @@ jobs:
         REPO="${{ github.repository }}"
         ACTOR="${{ github.actor }}"
         RUN_ID="${{ github.run_id }}"
-        TEST_START="${{ env.TEST_START_TIME }}"
-        TEST_END="${{ env.TEST_END_TIME }}"
-        TEST_START_UNIX="${{ env.TEST_START_UNIX }}"
-        TEST_END_UNIX="${{ env.TEST_END_UNIX }}"
-        
-        # Repository metadata (hardcoded for this repo)
-        REPO_ID="1185999214"
-        REPO_DESC="Your software agency. Starts today. No developers. No servers. No setup cost. Register, pick your theme, and start selling."
-        OWNER_AVATAR="https://avatars.githubusercontent.com/u/87251166?v=4"
-        OWNER_URL="https://github.com/anilchaudhary449"
-        OWNER_LOGIN="anilchaudhary449"
-        
-        # Calculate duration in seconds
-        DURATION=$((TEST_END_UNIX - TEST_START_UNIX))
-        DURATION_MIN=$((DURATION / 60))
-        DURATION_SEC=$((DURATION % 60))
         
         # Build JSON payload safely using jq
         PAYLOAD=$(jq -n \
           --arg title "🧪 Test Execution Report" \
-          --arg description "$REPO_DESC" \
+          --arg description "Automated test suite results for **${REPO}**" \
           --arg color "$COLOR" \
           --arg status_emoji "$STATUS_EMOJI" \
           --arg status "$STATUS" \
@@ -107,38 +87,17 @@ jobs:
           --arg commit "$COMMIT_SHA" \
           --arg actor "$ACTOR" \
           --arg run_time "$RUN_TIME" \
-          --arg test_start "$TEST_START" \
-          --arg test_end "$TEST_END" \
-          --arg duration "${DURATION_MIN}m ${DURATION_SEC}s" \
-          --arg repo_id "$REPO_ID" \
-          --arg repo "$REPO" \
-          --arg owner_login "$OWNER_LOGIN" \
-          --arg owner_url "$OWNER_URL" \
-          --arg owner_avatar "$OWNER_AVATAR" \
           --arg run_url "https://github.com/${REPO}/actions/runs/${RUN_ID}" \
           '{
             embeds: [{
               title: $title,
               description: $description,
               color: ($color | tonumber),
-              thumbnail: {
-                url: $owner_avatar
-              },
-              author: {
-                name: $owner_login,
-                url: $owner_url,
-                icon_url: $owner_avatar
-              },
               fields: [
-                {name: "🆔 Repository ID", value: $repo_id, inline: true},
-                {name: "📦 Repository", value: ("`" + $repo + "`"), inline: true},
                 {name: "📊 Status", value: ($status_emoji + " **" + $status + "**"), inline: true},
                 {name: "🌿 Branch", value: ("`" + $branch + "`"), inline: true},
                 {name: "🔗 Commit", value: ("`" + $commit + "`"), inline: true},
                 {name: "👤 Triggered by", value: "[\($actor)](https://github.com/\($actor))", inline: true},
-                {name: "⏱️ Test Start", value: $test_start, inline: true},
-                {name: "⏱️ Test End", value: $test_end, inline: true},
-                {name: "⏲️ Duration", value: $duration, inline: true},
                 {name: "🔍 Workflow", value: "[View Details](\($run_url))", inline: false}
               ],
               footer: {
@@ -169,7 +128,7 @@ jobs:
           fi
         fi
 
-    # 🔔 Slack Notification with Report
+    # 🔔 Slack Notification with Report (Direct HTML Download)
     - name: Send Slack Notification with Report
       if: always()
       run: |
@@ -183,27 +142,11 @@ jobs:
         REPO="${{ github.repository }}"
         ACTOR="${{ github.actor }}"
         RUN_ID="${{ github.run_id }}"
-        TEST_START="${{ env.TEST_START_TIME }}"
-        TEST_END="${{ env.TEST_END_TIME }}"
-        TEST_START_UNIX="${{ env.TEST_START_UNIX }}"
-        TEST_END_UNIX="${{ env.TEST_END_UNIX }}"
-        
-        # Repository metadata (hardcoded for this repo)
-        REPO_ID="1185999214"
-        REPO_DESC="Your software agency. Starts today. No developers. No servers. No setup cost. Register, pick your theme, and start selling."
-        OWNER_AVATAR="https://avatars.githubusercontent.com/u/87251166?v=4"
-        OWNER_URL="https://github.com/anilchaudhary449"
-        OWNER_LOGIN="anilchaudhary449"
-        
-        # Calculate duration in seconds
-        DURATION=$((TEST_END_UNIX - TEST_START_UNIX))
-        DURATION_MIN=$((DURATION / 60))
-        DURATION_SEC=$((DURATION % 60))
         
         # Build JSON payload safely using jq
         PAYLOAD=$(jq -n \
           --arg text "🧪 *Test Execution Report*" \
-          --arg pretext "$REPO_DESC" \
+          --arg pretext "Automated test suite results for *${REPO}*" \
           --arg color "$COLOR" \
           --arg status_text "$STATUS_TEXT" \
           --arg branch "$BRANCH" \
@@ -211,14 +154,6 @@ jobs:
           --arg actor "$ACTOR" \
           --arg run_time "$RUN_TIME" \
           --arg ts "$TS" \
-          --arg test_start "$TEST_START" \
-          --arg test_end "$TEST_END" \
-          --arg duration "${DURATION_MIN}m ${DURATION_SEC}s" \
-          --arg repo_id "$REPO_ID" \
-          --arg repo "$REPO" \
-          --arg owner_login "$OWNER_LOGIN" \
-          --arg owner_url "$OWNER_URL" \
-          --arg owner_avatar "$OWNER_AVATAR" \
           --arg run_url "https://github.com/${REPO}/actions/runs/${RUN_ID}" \
           '{
             text: $text,
@@ -227,20 +162,11 @@ jobs:
               color: $color,
               title: "📊 Test Results",
               title_link: $run_url,
-              author_name: $owner_login,
-              author_link: $owner_url,
-              author_icon: $owner_avatar,
-              thumb_url: $owner_avatar,
               fields: [
-                {title: "🆔 Repository ID", value: $repo_id, short: true},
-                {title: "📦 Repository", value: ("`" + $repo + "`"), short: true},
                 {title: "Status", value: $status_text, short: true},
                 {title: "Branch", value: ("`" + $branch + "`"), short: true},
                 {title: "Commit", value: ("`" + $commit + "`"), short: true},
                 {title: "Triggered by", value: "<https://github.com/\($actor)|\($actor)>", short: true},
-                {title: "Test Start", value: $test_start, short: true},
-                {title: "Test End", value: $test_end, short: true},
-                {title: "Duration", value: $duration, short: true},
                 {title: "Event", value: "push", short: true}
               ],
               footer: "Saauzi White Label CI/CD",
@@ -253,13 +179,16 @@ jobs:
           -H 'Content-Type: application/json' \
           -d "$PAYLOAD"
         
-        # Upload report file to Slack
+        # Upload HTML report file directly to Slack for download
         if [ -f "reports/report.html" ]; then
           FILE_SIZE=$(stat -c%s "reports/report.html")
           echo "📊 Report file size: $FILE_SIZE bytes"
+          
+          # Upload report file with Slack file upload API
           curl -s -X POST \
             -F file=@reports/report.html \
-            -F "initial_comment=📊 *Detailed Test Report Attached* from ${REPO}" \
+            -F "filename=pytest-report-$(date +%Y%m%d-%H%M%S).html" \
+            -F "initial_comment=📊 *Detailed Test Report Attached* - Click to download" \
             -F channels="${{ secrets.SLACK_CHANNEL_ID }}" \
             -H "Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}" \
             https://slack.com/api/files.upload
