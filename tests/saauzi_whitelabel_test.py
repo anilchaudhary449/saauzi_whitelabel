@@ -1,4 +1,6 @@
 import pytest
+
+from pages.client_logs import ClientLogs
 from pages.clients import Clients
 from pages.company_subscriptions import CompanySubscriptions
 from pages.dashboard import Dashboard
@@ -14,11 +16,11 @@ class TestSaauziWhitelabel:
     def test_homepage(self, browserSetup):
         homepage = Home(browserSetup)
 
-        homepage.create_your_agency_free()
-        homepage.see_how_it_works()
         homepage.click_login()
         homepage.click_sign_up()
+        homepage.create_your_agency_free()
         homepage.claim_your_spot()
+        homepage.see_how_it_works()
 
     def test_signup(self, browserSetup):
 
@@ -52,11 +54,28 @@ class TestSaauziWhitelabel:
 
         # client.view_client()
     def test_company_subscriptions(self, browserSetup):
+    
         no_of_subscriptions = random_number_of_subscriptions()
+        remarks = random_remarks()
+        ref_id = random_ref_id()
         company_subscription = CompanySubscriptions(browserSetup)
         company_subscription.click_subscription_tab()
         company_subscription.click_create_subscription()
         company_subscription.fill_subscription_form(no_of_subscriptions)
+        company_subscription.create_subscription()
+        company_subscription.view_subscription()
+        company_subscription.make_payment()
+        company_subscription.fill_payment_details(remarks, ref_id)
+
+
+    def test_clients_logs(self, browserSetup):
+        client_logs = ClientLogs(browserSetup)
+        client_logs.navigate_to_client_logs()
+        
 
 if __name__ == "__main__":
-    pytest.main('tests/saauzi_whitelabel_test.py -k "test_homepage or test_signup or test_login or test_client or test_company_subscription" -v -s')
+    pytest.main('tests/saauzi_whitelabel_test.py \
+    -k "test_signup or test_login \
+    or test_client or test_company_subscription \
+    " \
+    -v -s')
