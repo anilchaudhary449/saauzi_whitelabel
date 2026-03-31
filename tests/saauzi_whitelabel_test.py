@@ -7,6 +7,8 @@ from pages.dashboard import Dashboard
 from pages.login import Login
 from pages.signup import SignUp
 from pages.home import Home
+from pages.company_profile import CompanyProfile
+from pages.purchase_plan import PurchasePlan
 from test_data.test_data import *
 
 class TestSaauziWhitelabel:
@@ -58,6 +60,8 @@ class TestSaauziWhitelabel:
         no_of_subscriptions = random_number_of_subscriptions()
         remarks = random_remarks()
         ref_id = random_ref_id()
+        receipt = payment_receipt()
+
         company_subscription = CompanySubscriptions(browserSetup)
         company_subscription.click_subscription_tab()
         company_subscription.click_create_subscription()
@@ -65,12 +69,28 @@ class TestSaauziWhitelabel:
         company_subscription.create_subscription()
         company_subscription.view_subscription()
         company_subscription.make_payment()
-        company_subscription.fill_payment_details(remarks, ref_id)
+        company_subscription.fill_payment_details(remarks, ref_id, receipt)
 
 
     def test_clients_logs(self, browserSetup):
         client_logs = ClientLogs(browserSetup)
         client_logs.navigate_to_client_logs()
+    
+    def test_company_profile_update(self, browserSetup):
+        company_name, company_email, company_owner,\
+        company_phone, company_address,\
+        company_website, company_vat, \
+        company_logo, company_favicon = random_company_details()
+        company_details = random_paragraph()
+
+        company_profile = CompanyProfile(browserSetup)
+        company_profile.navigate_to_company_profile()
+        company_profile.fill_company_details(company_name, company_email, company_owner, company_phone, company_address, company_website, company_vat, company_logo, company_favicon, company_details)
+        company_profile.click_submit()
+
+    def test_purchase_plan(self, browserSetup):
+        purchase_plan = PurchasePlan(browserSetup)
+        purchase_plan.navigate_to_purchase_plan()
         
 
 if __name__ == "__main__":
