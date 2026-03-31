@@ -18,4 +18,3 @@ class ClientLogs:
         self.wait.until(EC.url_contains("/client-logs"))
         assert "/client-logs" in self.driver.current_url, "Clicking Client Logs did not navigate to the client logs page"
         assert self.wait.until(EC.visibility_of_element_located(self.ClientLogsTable)).is_displayed(), "Client Logs table is not visible on the client logs page"
-
