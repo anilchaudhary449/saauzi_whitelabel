@@ -1,3 +1,4 @@
+from time import time
 import time
 
 from selenium.webdriver.common.by import By
@@ -12,6 +13,7 @@ class Home:
         self.claimYourSpot = (By.XPATH,"//a[contains(@href,'/register?referral=claim-spot')]")
         self.createYourAgency = (By.XPATH,"//div[@class='lp-hero__ctas']//child::a[contains(normalize-space(.),'Create My Agency Free')]")
         self.seeHowItWorks = (By.XPATH,"//a[normalize-space(.)='See how it works']")
+
     def click_login(self):
         loginButton = self.wait.until(EC.element_to_be_clickable(self.loginButton))
         time.sleep(2)
@@ -47,6 +49,7 @@ class Home:
     def create_your_agency_free(self):
         create_your_agency = self.wait.until(EC.presence_of_element_located(self.createYourAgency))
         self.driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", create_your_agency)
+        time.sleep(1)
         assert create_your_agency.is_displayed(), "Create Your Agency button is not visible on the home page"
         assert create_your_agency.is_enabled(), "Create Your Agency button is not enabled on the home page"
         create_your_agency.click()
