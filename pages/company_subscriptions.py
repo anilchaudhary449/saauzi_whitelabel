@@ -1,4 +1,3 @@
-import os
 import time
 import random
 from selenium.webdriver.common.by import By
@@ -93,7 +92,7 @@ class CompanySubscriptions:
         assert "payment" in self.driver.current_url, "Clicking Make Payment button did not navigate to the company subscriptions page"
 
 
-    def fill_payment_details(self,remarks, ref_ID):
+    def fill_payment_details(self,remarks, ref_ID, receipt):
         payment_method = self.wait.until(EC.presence_of_element_located(self.paymentMethod))
         payment_method.click()
         payment_method_options = self.wait.until(EC.presence_of_all_elements_located(self.paymentMethodOptions))
@@ -108,7 +107,7 @@ class CompanySubscriptions:
         ref_id_field.clear()
         ref_id_field.send_keys(ref_ID)
         payment_receipt = self.wait.until(EC.presence_of_element_located(self.paymentReceipt))
-        payment_receipt.send_keys(os.path.abspath("test_data/payment_receipt.png"))
+        payment_receipt.send_keys(receipt)
         time.sleep(1)
         payment_submit_button = self.wait.until(EC.element_to_be_clickable(self.paymentSubmitButton))
         assert payment_submit_button.is_displayed(), "Payment submit button is not visible on the company subscriptions page"
