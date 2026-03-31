@@ -39,6 +39,17 @@ def client_data():
     client_phone = ''.join(random.choice(string.digits) for i in range(10))
     return client_name, client_email, client_phone
 
-def random_number_of_subscriptions(start=10, end=1000):
+def random_number_of_subscriptions():
     import random
-    return random.randint(start, end)
+    return random.randint(10, 999)
+
+def random_remarks():
+    import random
+    import string
+    return ''.join(random.choice(string.ascii_lowercase) for i in range(10))
+
+def random_ref_id():
+    import random
+    import string
+    return ''.join(random.choice(string.digits) for i in range(10))
+    
