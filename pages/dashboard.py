@@ -1,7 +1,7 @@
 import time
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-from test_data.test_data import dashboard_contents, client_summary_contents
+from test_data.data import dashboard_contents, client_summary_contents
 from selenium.webdriver.support.wait import WebDriverWait
 
 class Dashboard:
