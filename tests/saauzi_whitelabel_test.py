@@ -77,7 +77,7 @@ from test_data.data import (
 
 
 # =============================================================================
-# ① HOMEPAGE
+# HOMEPAGE
 # =============================================================================
 
 class TestHomepage:
@@ -110,7 +110,7 @@ class TestHomepage:
 
 
 # =============================================================================
-# ② SIGNUP PAGE
+# SIGNUP PAGE
 # =============================================================================
 
 class TestSignup:
@@ -399,7 +399,7 @@ class TestSignup:
         assert "dashboard" not in url_after, \
             "Fake TLDs should be gracefully rejected"
 # =============================================================================
-# ③ LOGIN PAGE
+# LOGIN PAGE
 # =============================================================================
 
 class TestLogin:
@@ -690,7 +690,7 @@ class TestLogin:
 
 
 # =============================================================================
-# ④ DASHBOARD  (requires active login — done inside each test)
+# DASHBOARD  (requires active login — done inside each test)
 # =============================================================================
 
 class TestDashboard:
@@ -715,7 +715,7 @@ class TestDashboard:
 
 
 # =============================================================================
-# ⑤ CLIENTS  (stays logged in from Dashboard test)
+# CLIENTS  (stays logged in from Dashboard test)
 # =============================================================================
 
 class TestClients:
@@ -731,7 +731,7 @@ class TestClients:
 
 
 # =============================================================================
-# ⑥ COMPANY SUBSCRIPTIONS  (stays logged in)
+# COMPANY SUBSCRIPTIONS  (stays logged in)
 # =============================================================================
 
 class TestCompanySubscriptions:
@@ -754,7 +754,7 @@ class TestCompanySubscriptions:
 
 
 # =============================================================================
-# ⑦ CLIENT LOGS  (stays logged in)
+# CLIENT LOGS  (stays logged in)
 # =============================================================================
 
 class TestClientLogs:
@@ -767,7 +767,7 @@ class TestClientLogs:
 
 
 # =============================================================================
-# ⑧ COMPANY PROFILE  (stays logged in)
+# COMPANY PROFILE  (stays logged in)
 # =============================================================================
 
 class TestCompanyProfile:
@@ -795,7 +795,7 @@ class TestCompanyProfile:
 
 
 # =============================================================================
-# ⑨ PURCHASE PLAN  (stays logged in)
+# PURCHASE PLAN  (stays logged in)
 # =============================================================================
 
 class TestPurchasePlan:
